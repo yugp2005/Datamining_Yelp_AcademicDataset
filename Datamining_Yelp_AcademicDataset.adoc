@@ -1,0 +1,605 @@
+:imagesdir: media
+:sectnums:
+:toc:
+
+= Datamining Yelp academic dataset to guess a review's rating from its text alone.
+Guanping Yu <yugp2005@gmail.com>
+
+_Yelp Dataset Challenge:_  link:.\reference\Yelp_Dataset_Challenge_Terms_round_7.pdf[Yelp_Dataset_Challenge_Terms_round_7] +
+Yelp connects people to great local businesses. To help people find great local businesses,
+Yelp engineers have developed an excellent search engine to sift through over 89 million reviews and help people find the
+most relevant businesses for their everyday needs. Yelp is proud to introduce a deep dataset for research minded academics
+from our wealth of data. If you’ve been looking for a rich set of data to train your models on and use in publications,
+this is it. Tired of using the same standard datasets? Want some real world relevance in your research project? This data is for you! +
+
+*	How well can you guess a review's rating from its text alone?
+*	Can you take all of the reviews of a business and predict when it will be the most busy, or when the business is open?
+*	Can you predict if a business is good for kids? Has WiFi? Has Parking?
+*	What makes a review useful, funny, or cool?
+*	Can you figure out which business a user is likely to review next?
+*	How much of a business's success is really just location, location, location?
+*	What businesses deserve their own subcategory (i.e., Szechuan or Hunan versus just “Chinese restaurants”), and can you learn this from the review text?
+*	What are the differences between the cities in the dataset?
+
+For the uses this dataset need following yelp agreement.
+link:.\reference\Dataset_Challenge_Academic_Dataset_Agreement.pdf[Dataset_Challenge_Academic_Dataset_Agreement]
+
+This project was finished with assistance from
+link:http://cis.csuohio.edu/~sschung/?_ga=2.19094651.271117479.1587669425-2103934368.1586175169[Dr. Sunnie Sun Chung]
+the solve the Yelp Dataset Challenge first question: How well can you guess a review’s rating from its text alone? +
+The text mining experiment will follow the Pang’s paper in 2002.
+link:https://www.aclweb.org/anthology/W02-1011/[Thumbs up? Sentiment Classification using Machine Learning Techniques]
+
+
+
+== Process dataset
+
+=== json format raw data
+yelp_academic_dataset_review.json contain 2225213 reviews. For the space limit and yelp agreement, I did not share their
+original dataset in github. Only include 1000 records 'yelp_academic_dataset_review_1000records.json' in sampleData folder to explain how to process raw data.
+You could download similar datasets from Yelp. link:
+link:https://www.yelp.com/dataset[Yelp Open Dataset].
+
+Review format:
+----
+{
+    'type': 'review',
+    'business_id': (encrypted business id),
+    'user_id': (encrypted user id),
+    'stars': (star rating, rounded to half-stars),
+    'text': (review text),
+    'date': (date, formatted like '2012-03-14'),
+    'votes': {(vote type): (count)},
+}
+
+Example:
+{
+	"votes": {
+		"funny": 0,
+		"useful": 0,
+		"cool": 0
+	},
+	"user_id": "PUFPaY9KxDAcGqfsorJp3Q",
+	"review_id": "Ya85v4eqdd6k9Od8HbQjyA",
+	"stars": 4,
+	"date": "2012-08-01",
+	"text": "Mr Hoagie is an institution. Walking in, it does seem like a throwback to 30 years ago, old fashioned menu board, booths out of the 70s, and a large selection of food. Their speciality is the Italian Hoagie, and it is voted the best in the area year after year. I usually order the burger, while the patties are obviously cooked from frozen, all of the other ingredients are very fresh. Overall, its a good alternative to Subway, which is down the road.",
+	"type": "review",
+	"business_id": "5UmKMjUEUNdYWqANhGckJw"
+}
+----
+
+Copy the first 1000 reviews to a new file
+----
+$ wc -l yelp_academic_dataset_review.json
+2225213 yelp_academic_dataset_review.json
+
+$ sed -n '1,1000' yelp_academic_dataset_review.json > yelp_academic_dataset_review_1000records.json
+----
+
+=== convert review text from json to table separated value(tsv) file
+
+* install Hadoop
+----
+TODO
+----
+
+* install Hive
+----
+TODO
+----
+
+* run Hadoop
+----
+Login localhost
+$ ssh localhost
+
+Format a new distributed-filesystem
+$ hdfs namenode –format
+
+Start Hadoop daemons
+$ start-dfs.sh
+$ start-yarn.sh
+
+Verification of daemons
+$ jps
+----
+.Hadoop jps
+image:Hadoop_jps.png[]
+
+* Start hive and do query
+----
+safemode off
+$ hdfs dfsadmin -safemode leave
+
+start hive
+$ hive
+----
+
+* Process json file with Hive. Import yelp_academic_dataset_review_1000records.json file into Hadoop and output null \000 separated file as following
+----
+hive>CREATE TABLE IF NOT EXISTS table1kreviews(str string);
+hive> LOAD DATA LOCAL INPATH '/home/gpyu/yelp/yelpDatasets/yelp_academic_dataset_review_1000records.json' OVERWRITE INTO TABLE table1kreviews;
+
+hive> INSERT OVERWRITE LOCAL DIRECTORY '/home/gpyu/hadoopOUT/' ROW FORMAT DELIMITED FIELDS TERMINATED BY '\000' SELECT GET_JSON_OBJECT(table1kreviews.str, '$.stars'), GET_JSON_OBJECT(table1kreviews.str, '$.user_id'), GET_JSON_OBJECT(table1kreviews.str, '$.review_id'), GET_JSON_OBJECT(table1kreviews.str, '$.date'), GET_JSON_OBJECT(table1kreviews.str, '$.type'), GET_JSON_OBJECT(table1kreviews.str, '$.business_id'), GET_JSON_OBJECT(table1kreviews.str, '$.text') from table1kreviews;
+----
+output file: /home/gpyu/hadoopOUT/000000_0. +
+Rename '000000_0' to 'review_1k_col7_delim_null'
+
+* Convert null separated file to table separated value (tsv) file with program totsv.c. +
+The raw data is n columns null (0x00) separated file. The first column must be one char and other column should more one char.
+The code was based on file review_1k_col7_delim_null which first column is 'stars' on char. If file pattern change, code need update accordingly.
+
+----
+#compile totsv.c
+$ gcc totsv.c -o totsv
+
+#run totsv.c
+$ ./totsv review_1k_col7_delim_null review_1k_col7.tsv
+----
+.null separated file
+image:File_Null_delim.png[]
+
+.Table separated file
+image:File_Table_delim.png[]
+
+=== Clean review text and convert to binary input
+To implement these machine learning algorithms on our document data, used the following standard bag-of-features framework.
+Let {f~1~ , . . . , f~m~ } be a predefined set of m features that can appear in a document; examples include the word “still” or
+the bigram “really stinks”. Let n~i~(d) be the number of times fi occurs in document d. Then, each document d is represented
+by the document vector d := (n~1~(d), n~2~(d), . . . , n~m~(d)).
+Reference:
+link:https://www.aclweb.org/anthology/W02-1011/[Thumbs up? Sentiment Classification using Machine Learning Techniques]
+
+* ToBinary.java convert review text to binary input (frequency and presence)
+. clean the file: replace punctuation with space (not include single quote '').
+. count the word.
+. add negation not_ tag and count the word again.
+. Select features by intersection wordcount and dictionary transfer text to binary using frequency of the features. +
+
+* Dictionary: dic_pos_neg +
+A list of positive and negative opinion words or sentiment words for English (6789 words).
+Rerence:
+link:http://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html[Opinion Mining, Sentiment Analysis, and Opinion Spam Detection]
+
+Compile and Run ToBinary
+----
+$ javac ToBinary.java
+$ java ToBinary
+Input the raw file:
+review_1k_col7.tsv
+
+Input the number of variables in the raw file:
+7
+
+Input the dictionary containing postive and negtive words:
+dic_pos_neg
+
+Start processing:
+1. Count the observations in the input file
+review_1k_col7.tsv has 1000 observations
+
+2. Clean and tag file , word count: 99.90%
+
+3. Select Features according to the dictionary and wordcount result
+147 features were selected
+
+4. Read clean taged text file and convert to binary: 99.90%
+
+Process finish!
+
+
+Process finish! Time taken 0.945 Second
+----
+
+== Algorithms on text Mining
+The classification algorithms were used from
+link:https://cran.r-project.org/web/packages/caret/[R caret package.]
+
+. Naive Bayes (method = 'nb') +
+For classification using package klaR with tuning parameters:
+
+* Laplace Correction (fL, numeric)
+* Distribution Type (usekernel, logical)
+* Bandwidth Adjustment (adjust, numeric)
+
+. Learning Vector Quantization (method = 'lvq') +
+For classification using package class with tuning parameters:
+
+* Codebook Size (size, numeric)
+* Number of Prototypes (k, numeric)
+
+. Neural Network (method = 'nnet') +
+For classification and regression using package nnet with tuning parameters:
+
+* Number of Hidden Units (size, numeric)
+* Weight Decay (decay, numeric)
+
+. Neural Networks with Feature Extraction (method = 'pcaNNet') +
+For classification and regression using package nnet with tuning parameters:
+
+* Number of Hidden Units (size, numeric)
+* Weight Decay (decay, numeric)
+
+. Support Vector Machines with Linear Kernel (method = 'svmLinear') +
+For classification and regression using package kernlab with tuning parameters:
+
+* Cost (C, numeric)
+
+. Support Vector Machines with Linear Kernel (method = 'svmLinear2') +
+For classification and regression using package e1071 with tuning parameters:
+
+* Cost (cost, numeric)
+
+. Linear Support Vector Machines with ClassWeights (method = 'svmLinearWeights') +
+For classification using package e1071 with tuning parameters:
+
+* Cost (cost, numeric)
+* Class Weight (weight, numeric)
+
+. k-Nearest Neighbors (method = 'knn') +
+For classification and regression with tuning parameters:
+
+* Number of Neighbors (k, numeric)
+
+. Support Vector Machines with Radial Basis Function Kernel (method = 'svmRadial') +
+For classification and regression using package kernlab with tuning parameters:
+
+* Sigma (sigma, numeric)
+* Cost (C, numeric)
+
+. Stochastic Gradient Boosting (method = 'gbm') +
+For classification and regression using packages gbm and plyr with tuning parameters:
+
+* Number of Boosting Iterations (n.trees, numeric)
+* Max Tree Depth (interaction.depth, numeric)
+* Shrinkage (shrinkage, numeric)
+* Min. Terminal Node Size (n.minobsinnode, numeric)
+
+== Text mining experiment and results
+
+R and Rstudio
+----
+TODO version and how to run
+----
+
+===	Discuss the number of features and the prediction accuracy
+2k dataset contain only star1 and star5, 1k per each.
+feature frequency (the number of times fi occurs in whole dataset.)
+(01 >= 1; 04 >= 4; 20 >= 20 (1% number of observations)). Discuss the number of features and the prediction accuracy +
+Model: svmLinear +
+File: review_2k_binfreq_svm.RData +
+image:review_2k_binfreq_svm.png[review_2k_binfreq_svm]
+
+----
+> summary(results_svmLinear)
+
+Call:
+summary.resamples(object = results_svmLinear)
+
+Models: freq01, freq04, freq20
+Number of resamples: 30
+
+Accuracy
+            Min. 1st Qu. Median   Mean 3rd Qu.  Max. NA's
+freq01 0.850  0.8800 0.8925 0.8928  0.9050 0.955    0
+freq04 0.805  0.8462 0.8650 0.8638  0.8838 0.925    0
+freq20 0.830  0.8650 0.8750 0.8767  0.8900 0.920    0
+
+Kappa
+           Min. 1st Qu. Median   Mean 3rd Qu. Max. NA's
+freq01 0.70  0.7600  0.785 0.7857  0.8100 0.91    0
+freq04 0.61  0.6925  0.730 0.7277  0.7675 0.85    0
+freq20 0.66  0.7300  0.750 0.7533  0.7800 0.84    0
+
+> dotplot(results_svmLinear)
+----
+.review_2k_binfreq_svm_dotplot
+image:review_2k_binfreq_svm_dotplot.png[]
+
+*Discussion:* The best one is freq01 which has 1767 features, freq20 has 150 features.
+The accuracy for these two set are almost same (89.3% vs 87.7%). Freq04 has 641 features and accuracy is 86.4%.
+In order to save computation time, the number of features fi in the whole dataset will be >= 1% number of observations.
+
+=== freq vs pres, Model: svmLinear, lvq and gbm
+2k dataset contain only star1 and star5, 1k per each.  Frequency of features vs presence of features (freq vs pres) +
+Model: svmLinear, lvq and gbm +
+File: review_2k_star2_bin_svm_gbm_lvq.RData +
+image:review_2k_star2_bin_svm_gbm_lvq.png[review_2k_star2_bin_svm_gbm_lvq]
+
+----
+> summary(results)
+
+Call:
+summary.resamples(object = results)
+
+Models: svmFreq, svmPres, lvqFreq, lvqPres, gbmFreq, gbmPres
+Number of resamples: 30
+
+Accuracy
+         Min. 1st Qu. Median   Mean 3rd Qu.  Max. NA's
+svmFreq 0.840  0.8650  0.875 0.8762   0.890 0.915    0
+svmPres 0.840  0.8550  0.870 0.8715   0.885 0.915    0
+lvqFreq 0.765  0.8025  0.835 0.8303   0.855 0.885    0
+lvqPres 0.790  0.8162  0.845 0.8405   0.860 0.900    0
+gbmFreq 0.835  0.8600  0.875 0.8758   0.890 0.925    0
+gbmPres 0.840  0.8650  0.880 0.8787   0.895 0.920    0
+
+Kappa
+        Min. 1st Qu. Median   Mean 3rd Qu. Max. NA's
+svmFreq 0.68  0.7300   0.75 0.7523    0.78 0.83    0
+svmPres 0.68  0.7100   0.74 0.7430    0.77 0.83    0
+lvqFreq 0.53  0.6050   0.67 0.6607    0.71 0.77    0
+lvqPres 0.58  0.6325   0.69 0.6810    0.72 0.80    0
+gbmFreq 0.67  0.7200   0.75 0.7517    0.78 0.85    0
+gbmPres 0.68  0.7300   0.76 0.7573    0.79 0.84    0
+
+> dotplot(results)
+----
+.review_2k_star2_bin_svm_gbm_lvq_dotplot
+image:review_2k_star2_bin_svm_gbm_lvq_dotplot.png[]
+
+*Discussion:* the frequency and presence of features show similar accuracy for gbm, svmLinear and lvq model.
+Gbm and svmLinear models accuracy (88%) higher than lvq model (84%).
+
+=== freq vs pres, Model: nnet and nb
+2k dataset contain only star1 and star5, 1k per each.  Frequency of features vs presence of features (freq vs pres)
+Another two classification model nnet and nb +
+Model: nnet and nb
+File: review_2k_star2_bin_nb_nnt.RData
+image:review_2k_star2_bin_nb_nnt.png[]
+
+----
+> summary(results)
+
+Call:
+summary.resamples(object = results)
+
+Models: nbFreq, nbPres, nnetFreq, nnetPres, PcaNNetFreq, PcaNNetPres
+Number of resamples: 30
+
+Accuracy
+             Min. 1st Qu. Median   Mean 3rd Qu.  Max. NA's
+nbFreq      0.495  0.5050 0.5100 0.5168  0.5250 0.555    0
+nbPres      0.510  0.6025 0.6575 0.6842  0.7650 0.910    0
+nnetFreq    0.840  0.8662 0.8775 0.8807  0.8900 0.930    0
+nnetPres    0.845  0.8650 0.8800 0.8812  0.8988 0.920    0
+PcaNNetFreq 0.805  0.8650 0.8775 0.8732  0.8888 0.915    0
+PcaNNetPres 0.830  0.8550 0.8700 0.8755  0.9038 0.910    0
+
+Kappa
+             Min. 1st Qu. Median    Mean 3rd Qu. Max. NA's
+nbFreq      -0.01  0.0100  0.020 0.03367  0.0500 0.11    0
+nbPres       0.02  0.2050  0.315 0.36830  0.5300 0.82    0
+nnetFreq     0.68  0.7325  0.755 0.76130  0.7800 0.86    0
+nnetPres     0.69  0.7300  0.760 0.76230  0.7975 0.84    0
+PcaNNetFreq  0.61  0.7300  0.755 0.74630  0.7775 0.83    0
+PcaNNetPres  0.66  0.7100  0.740 0.75100  0.8075 0.82    0
+
+> dotplot(results)
+----
+
+.review_2k_star2_bin_nb_nnt_dotplot
+image:review_2k_star2_bin_nb_nnt_dotplot.png[]
+
+*Discussion:* for naïve Bayes (nb) model both presence and frequency of features showed lower accuracy (freq 51.7%, pres 68.4%).
+Neural network (nnet) and Neural Networks with Feature Extraction (PcaNNet) showed higher accuracy(87.3~88.1%),
+similar with svm and gbm models (88%).
+
+=== Evaluate the model stability
+2k dataset (a-d four different 2k samples) contain only star1 and star5, 1k per each.
+To evaluate the model stability, we random selected four group 2k data from yelp review. +
+File: review_2k_binfreq_abcd_svm.RData +
+Model: svmLinear +
+image:review_2k_binfreq_abcd_svm.png[]
+
+----
+> summary(results_svmLinear_abcd)
+
+Call:
+summary.resamples(object = results_svmLinear_abcd)
+
+Models: a_2k, b_2k, c_2k, d_2k
+Number of resamples: 30
+
+Accuracy
+      Min. 1st Qu. Median   Mean 3rd Qu.  Max. NA's
+a_2k 0.810  0.8650  0.875 0.8752  0.8938 0.925    0
+b_2k 0.835  0.8662  0.880 0.8812  0.8950 0.915    0
+c_2k 0.835  0.8650  0.880 0.8810  0.8950 0.915    0
+d_2k 0.855  0.8762  0.885 0.8893  0.9000 0.935    0
+
+Kappa
+     Min. 1st Qu. Median   Mean 3rd Qu. Max. NA's
+a_2k 0.62  0.7300   0.75 0.7503  0.7875 0.85    0
+b_2k 0.67  0.7325   0.76 0.7623  0.7900 0.83    0
+c_2k 0.67  0.7300   0.76 0.7620  0.7900 0.83    0
+d_2k 0.71  0.7525   0.77 0.7787  0.8000 0.87    0
+
+> dotplot(results_svmLinear_abcd)
+----
+
+.review_2k_binfreq_abcd_svm_dotplot
+image:review_2k_binfreq_abcd_svm_dotplot.png[]
+
+*Discussion:* compare with previous 2k dataset, no matter we select different sample.
+The prediction accuracies are same for the same model.
+
+=== Evaluate the model for 5 levels (1-5)
+5k dataset contain star1 to star5, 1k per each. To evaluate the model for 5 levels (1-5). +
+File: review_5k_bin_svm_gbm_lvq.RData +
+Model: svmLinear, gbm and lvq +
+image:review_5k_bin_svm_gbm_lvq.png[review_5k_bin_svm_gbm_lvq]
+
+----
+> summary(results)
+
+Call:
+summary.resamples(object = results)
+
+Models: svmFreq, svmPres, lvqFreq, lvqPres, gbmFreq, gbmPres
+Number of resamples: 30
+
+Accuracy
+         Min. 1st Qu. Median   Mean 3rd Qu.  Max. NA's
+svmFreq 0.414  0.4320  0.446 0.4471  0.4650 0.482    0
+svmPres 0.408  0.4380  0.448 0.4492  0.4540 0.492    0
+lvqFreq 0.336  0.3505  0.376 0.3717  0.3860 0.412    0
+lvqPres 0.334  0.3580  0.369 0.3718  0.3860 0.414    0
+gbmFreq 0.404  0.4345  0.449 0.4459  0.4595 0.492    0
+gbmPres 0.414  0.4300  0.446 0.4449  0.4580 0.484    0
+
+Kappa
+          Min. 1st Qu. Median   Mean 3rd Qu.   Max. NA's
+svmFreq 0.2675  0.2900 0.3075 0.3089  0.3313 0.3525    0
+svmPres 0.2600  0.2975 0.3100 0.3115  0.3175 0.3650    0
+lvqFreq 0.1700  0.1881 0.2200 0.2147  0.2325 0.2650    0
+lvqPres 0.1675  0.1975 0.2112 0.2147  0.2325 0.2675    0
+gbmFreq 0.2550  0.2931 0.3113 0.3073  0.3244 0.3650    0
+gbmPres 0.2675  0.2875 0.3075 0.3061  0.3225 0.3550    0
+
+> dotplot(results)
+----
+
+.review_5k_bin_svm_gbm_lvq_dotplot
+image:review_5k_bin_svm_gbm_lvq_dotplot.png[]
+
+*Discussion:* When level increase (from level 2 to level 5), the model prediction accuracy decrease from 88% to 44%.
+
+=== Evaluate the model for 3 levels (star1, star3, start5).
+As increase level from 2 to 5 cause model prediction accuracy decrease, combine the middle level, test model for level 3. +
+5k dataset contain star1 to star5, 1k per each. Assign star2 to star1, star4 to star5.  To evaluate the model for 3 levels (1, 3, 5). +
+File: review_5k_star3_bin_svm_gbm_lvq.RData +
+Model: svmLinear, gbm and lvq +
+image:review_5k_star3_bin_svm_gbm_lvq.png[]
+
+----
+> summary(results3)
+
+Call:
+summary.resamples(object = results3)
+
+Models: svmFreqL3, svmPresL3, lvqFreqL3, lvqPresL3, gbmFreqL3, gbmPresL3
+Number of resamples: 30
+
+Accuracy
+           Min. 1st Qu. Median   Mean 3rd Qu.  Max. NA's
+svmFreqL3 0.644  0.6535  0.669 0.6726  0.6925 0.714    0
+svmPresL3 0.640  0.6510  0.664 0.6669  0.6835 0.700    0
+lvqFreqL3 0.548  0.5835  0.607 0.6007  0.6180 0.654    0
+lvqPresL3 0.550  0.6010  0.611 0.6105  0.6235 0.650    0
+gbmFreqL3 0.626  0.6660  0.674 0.6757  0.6930 0.720    0
+gbmPresL3 0.632  0.6620  0.674 0.6759  0.6880 0.716    0
+
+Kappa
+            Min. 1st Qu. Median   Mean 3rd Qu.   Max. NA's
+svmFreqL3 0.4239  0.4402 0.4644 0.4700  0.5020 0.5396    0
+svmPresL3 0.4182  0.4381 0.4572 0.4615  0.4864 0.5139    0
+lvqFreqL3 0.2643  0.3224 0.3562 0.3463  0.3735 0.4283    0
+lvqPresL3 0.2579  0.3429 0.3560 0.3576  0.3769 0.4240    0
+gbmFreqL3 0.3983  0.4624 0.4744 0.4769  0.5051 0.5481    0
+gbmPresL3 0.4068  0.4542 0.4730 0.4772  0.4973 0.5425    0
+
+> dotplot(results3)
+----
+
+.review_5k_star3_bin_svm_gbm_lvq_dotplot
+image:review_5k_star3_bin_svm_gbm_lvq_dotplot.png[]
+
+*Discussion:* When level 5 decrease to level 3, the prediction accuracy increase. svmLinear model from 44% to 66%.
+
+=== Evaluate the model for 2 combine levels (star1, star5)
+Reduce level (5->3) increase model prediction accuracy, continue investigate combine levels to 2. +
+5k dataset contain star1 to star5, 1k per each. Assign star2 and star3 to star1, star4 to star5. To evaluate the model for 2 levels (star1, star5).
+File: review_5k_star2a_bin_svm_gbm_lvq.RData +
+Model: svmLinear, gbm and lvq +
+image:review_5k_star2a_bin_svm_gbm_lvq.png[]
+
+----
+> summary(results2a)
+
+Call:
+summary.resamples(object = results2a)
+
+Models: svmFreq2a, svmPres2a, lvqFreq2a, lvqPres2a, gbmFreq2a, gbmPres2a
+Number of resamples: 30
+
+Accuracy
+           Min. 1st Qu. Median   Mean 3rd Qu.  Max. NA's
+svmFreq2a 0.750  0.7770  0.786 0.7917  0.8090 0.828    0
+svmPres2a 0.738  0.7790  0.789 0.7927  0.8080 0.832    0
+lvqFreq2a 0.686  0.7120  0.727 0.7297  0.7455 0.802    0
+lvqPres2a 0.700  0.7105  0.725 0.7271  0.7380 0.774    0
+gbmFreq2a 0.742  0.7685  0.784 0.7844  0.7995 0.824    0
+gbmPres2a 0.748  0.7720  0.785 0.7861  0.8000 0.830    0
+
+Kappa
+            Min. 1st Qu. Median   Mean 3rd Qu.   Max. NA's
+svmFreq2a 0.4672  0.5263 0.5431 0.5577  0.5928 0.6362    0
+svmPres2a 0.4482  0.5345 0.5509 0.5615  0.5896 0.6471    0
+lvqFreq2a 0.3108  0.3847 0.4052 0.4158  0.4572 0.5773    0
+lvqPres2a 0.3416  0.3807 0.3963 0.4108  0.4356 0.5100    0
+gbmFreq2a 0.4482  0.5046 0.5357 0.5395  0.5739 0.6233    0
+gbmPres2a 0.4615  0.5099 0.5380 0.5432  0.5712 0.6371    0
+
+> dotplot(results2a)
+----
+
+.review_5k_star2a_bin_svm_gbm_lvq_dotplot
+image:review_5k_star2a_bin_svm_gbm_lvq_dotplot.png[]
+
+*Discussion:* The level decrease the accuracy increase. Level 3 to level 2, the accuracy from 66% to 79%.
+
+=== Evaluate the model combine star3 to star1 or star5
+To discuss which combination is better?
+
+. Assign star2 and star3 to star1, star4 to star5
+. Assign star2 to star1, star4 and star3 to star5
+
+5k dataset contain star1 to star5, 1k per each. Assign star2 to star1, star4 and star3 to star5. +
+File: review_5k_star2b_bin_svm_gbm_lvq.RData +
+Model: svmLinear, gbm and lvq +
+image:review_5k_star2b_bin_svm_gbm_lvq.png[]
+
+----
+> summary(results2b)
+
+Call:
+summary.resamples(object = results2b)
+
+Models: svmFreq2b, svmPres2b, lvqFreq2b, lvqPres2b, gbmFreq2b, gbmPres2b
+Number of resamples: 30
+
+Accuracy
+           Min. 1st Qu. Median   Mean 3rd Qu.  Max. NA's
+svmFreq2b 0.726  0.7590  0.776 0.7733  0.7910 0.812    0
+svmPres2b 0.736  0.7725  0.783 0.7824  0.7900 0.830    0
+lvqFreq2b 0.674  0.7120  0.726 0.7227  0.7355 0.768    0
+lvqPres2b 0.692  0.7180  0.734 0.7321  0.7460 0.778    0
+gbmFreq2b 0.734  0.7605  0.773 0.7712  0.7840 0.800    0
+gbmPres2b 0.728  0.7600  0.771 0.7697  0.7835 0.802    0
+
+Kappa
+            Min. 1st Qu. Median   Mean 3rd Qu.   Max. NA's
+svmFreq2b 0.4100  0.4848 0.5174 0.5117  0.5526 0.5983    0
+svmPres2b 0.4330  0.5104 0.5345 0.5339  0.5534 0.6389    0
+lvqFreq2b 0.3160  0.3788 0.4182 0.4065  0.4337 0.4983    0
+lvqPres2b 0.3390  0.3953 0.4350 0.4272  0.4574 0.5301    0
+gbmFreq2b 0.4192  0.4799 0.5077 0.5020  0.5302 0.5719    0
+gbmPres2b 0.4077  0.4746 0.5013 0.4992  0.5301 0.5729    0
+
+> dotplot(results2b)
+----
+
+.review_5k_star2b_bin_svm_gbm_lvq_dotplot
+image:review_5k_star2b_bin_svm_gbm_lvq_dotplot.png[]
+
+*Discussion:* There is no significant difference when assign star3 to star1 (2a 79%) or star5 (2b 78%) for svmLinear model.
+
+== Summary
+This project was designed to solve the Yelp Dataset Challenge first question: How well can you guess a review’s rating from its text alone? +
+
+Process raw review Json data to table separated file (tsv) and convert review text to binary input. Implement machine learning algorithms
+according to link:https://www.aclweb.org/anthology/W02-1011/[Pang's paper].
+
+The result was promising, model was robust and when combine levels to 2 (star1, star5), predict review's rating from its text alone accuracy could reach 80%.

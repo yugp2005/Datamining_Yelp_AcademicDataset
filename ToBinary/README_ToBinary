@@ -1,0 +1,96 @@
+VERSION: 0.5.0
+2016-08-05
+
+@update: feature with the number of times occurs in total document > 1% number of observations can be selected
+--------------------------------------------------------------------------------------/
+VERSION: 0.4.0
+2016-08-04
+
+@remove the intermediate file clean without tag and its wordcount
+@rename the output file
+@fix the bug if the text only containing punctuation such as:
+1	ulw4AUddco8iXjxAw9uAZw	i0N7BcV6TZS-qTzAKyRpYw	2015-03-18	review	vOHGhL-LFM1ZxO8DkOv-xQ	:( :( :(
+3	QFgoJO1GSS2RadBsEop7yQ	FK24RgcJvh_9_QXs_SLokQ	2015-12-03	review	VAHiEHdVPlG2DVG3YO6C7A	:)
+
+@add output file presence binary, if feature presence 1, else 0
+@fix a bug for Map.Entry--replace HashMap.Entry with Map.Entry and import java.util.Map; import java.util.Iterator;
+ error: cannot be accessed from outside package HashMap.Entry
+ http://stackoverflow.com/questions/7007513/iterating-through-a-hashmap
+--------------------------------------------------------------------------------------/
+VERSION: 0.3.0
+/**************/
+compile and run
+/**************/
+
+$javac ToBinary.java
+
+$ java ToBinary 
+Input the raw file: 
+review_100k_col7.tsv
+
+Input the dictionary containing postive and negtive words: 
+dic_pos_neg
+
+Start processing: 
+1. Count the observations in the input file
+review_100k_col7.tsv has 100000 observations
+
+2. Clean file with or without tag, word count: 100.00%
+
+3. Select Features according to the dictionary and wordcount result
+4755 features were selected
+
+4. Read clean taged text file and convert to binary: 100.00%
+
+Process finish!
+
+
+Process finish! Time taken 47.805 Second
+
+/**************/
+New features
+/**************/
+
+@add timer
+@intersection of wordcount taged clean file and dictionary(positive and negtive words)
+ to select features
+@transfer text to binary according to the feature freqency in observation
+
+--------------------------------------------------------------------------------------/
+VERSION: 0.2.0
+separate program to 
+
+*add NOT_ tag 
+--------------------------------------------------------------------------------------/
+/**tobinaryfreq.java
+*AUTHOR: Guanping YU
+*DATE: 2016-07-22
+*VERSION: 0.1.0
+*GOAL: trasfer review text to binary according to the dictionary.
+*
+*To implement these machine learning algorithms on our document data, 
+*we used the following standard bag-of-features framework. 
+*Let {f 1 , . . . , f m } be a predefined set of m features that can appear in a document; 
+*examples include the word “still” or the bigram “really stinks”. 
+*Let n i (d) be the number of times f i occurs in document d. 
+*Then, each document d is represented by the document vector
+*d := (n1(d), n2(d), . . . , nm(d)).
+*/
+
+
+/** cleanText method process text file for wordcount.
+*@param str raw text string
+*@return clean string for wordcount use
+*
+* replace the following punctuation with space 0x20
+*full stop . 0x2E	Comma , 0x2C	Colon : 0x3A	Semicolon ; 0x3B 
+*Open parenthesis ( 0x28	close parenthesis ) 0x29	Double quotes " 0x22 
+*
+*add space 0x20 before Exclamation mark ! 0x21 or Question mark ? 0x3F
+*/
+
+
+/**wordCount method count the frequency of each word
+*@param str the input string
+*@return HashMap hm which the key is word and value is frequncy
+*/

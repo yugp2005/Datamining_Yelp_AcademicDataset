@@ -1,0 +1,60 @@
+/************Version 0.4.0**********************/
+#compile and RUN
+$ gcc -o totsv totsv.c
+# arg[1] is the input raw data, arg[2] is the output tsv data
+$ ./totsv review_1k_col7_delim_null review_1k_col7.tsv
+
+
+/************Version 0.3**********************/
+compile and RUN
+$ gcc -o totsv totsv.c
+$ ./totsv
+Enter the name of input raw data: 
+oct_000_45
+Enter the name of output tsv file: 
+s452.tsv
+
+*fix bug: if this block is not the header of file, may miss the new line
+*printout the process status in stout
+
+
+
+/************Version 0.2.0**********************/
+compile and RUN
+gpyu@gpyu-dltd-E6510:~/Dropbox/yelp/code$ gcc -o totsv totsv.c
+gpyu@gpyu-dltd-E6510:~/Dropbox/yelp/code$ ./totsv
+Enter the name of input raw data: 
+oct_000_45
+Enter the name of output tsv file: 
+s452.tsv
+
+
+*DATE: 2016-07-16
+*Version: 0.2.0 
+*The raw data is n columns null (0x00) separated file. The first column is the star (1-5)
+*add user interface: input and output and number of column. 
+*Acturally this version did not use the param number of column.
+*
+*Potential Bugs
+/*change the char to newline (0x0A) between tuples. [...0x0A xx 0x00...], xx is decimal 1-5
+*bug: if this block is not the header of file, may miss the new line
+*/
+for(i = 0; i < bytes_read; i++){
+	if(buff[i] == 0x00 && buff[i-2] == 0x20){
+		buff[i-2] = 0x0A;
+	}
+}
+/************Version 0.1**********************/
+*DATE: 2016-07-15
+*Version: 0.1.0
+*GOAL: preprocess the raw data from HIVE to standard tsv (table separated value) file. 
+*The raw data is two column null (0x00) separated file. The first column is the star (1-5), 
+*second column is the content of review, each review may contain several lines.
+*
+*first step: replace the newline (0x0A), carriage return (0x0D) and tab (0x09) with space (0x20) 
+*second step: delimiter for the row. 
+              change the char to newline (0x0A) between tuples. [...0x0A xx 0x00...], xx is decimal 1-5
+*third step: delimiter for the column.
+             replace null (0x00) with tab (0x09)
+
+The input and output name are hardcoded
