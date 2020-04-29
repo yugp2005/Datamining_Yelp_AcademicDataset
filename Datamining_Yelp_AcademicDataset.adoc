@@ -31,7 +31,6 @@ The text mining experiment will follow the Pang’s paper in 2002.
 link:https://www.aclweb.org/anthology/W02-1011/[Thumbs up? Sentiment Classification using Machine Learning Techniques]
 
 
-
 == Process dataset
 
 === json format raw data
@@ -263,30 +262,28 @@ link:https://rstudio.com/products/rstudio/download/#download[R and Rstudio downl
 * Starting with R 4.0.0 (released April 2020), R for Windows uses a brand new toolchain bundle called rtools40.
 link:https://cran.r-project.org/bin/windows/Rtools/[Rtools download]
 
+* Install R packages
+----
+> install.packages("caret")
+> install.packages("klaR")
+> install.packages("mlbench")
+> install.packages("lattice")
+> install.packages("nnet")
+----
 
 ===	Discuss the number of features and the prediction accuracy
 2k dataset contain only star1 and star5, 1k per each.
 feature frequency (the number of times fi occurs in whole dataset.)
 (01 >= 1; 04 >= 4; 20 >= 20 (1% number of observations)). Discuss the number of features and the prediction accuracy +
 Model: svmLinear +
-File: review_2k_binfreq_svm.RData +
+File:
+link:.\RData\review_2k_binfreq_svm.RData[review_2k_binfreq_svm.RData] +
 image:review_2k_binfreq_svm.png[review_2k_binfreq_svm]
 
-Sample procedure
-----
-# Install packages
-> install.packages("caret")
-> install.packages("klaR")
+R Command:
+link:.\RData\review_2k_binfreq_svm.R[review_2k_binfreq_svm.R]
 
-# Load library
-> library(caret)
-> library(klaR)
-
-# Load datasets
-> load("review_2k_binfreq_svm.RData")
-
-----
-
+summary
 ----
 > summary(results_svmLinear)
 
@@ -320,9 +317,14 @@ In order to save computation time, the number of features fi in the whole datase
 === freq vs pres, Model: svmLinear, lvq and gbm
 2k dataset contain only star1 and star5, 1k per each.  Frequency of features vs presence of features (freq vs pres) +
 Model: svmLinear, lvq and gbm +
-File: review_2k_star2_bin_svm_gbm_lvq.RData +
+File:
+link:.\RData\review_2k_star2_bin_svm_gbm_lvq.RData[review_2k_star2_bin_svm_gbm_lvq.RData] +
 image:review_2k_star2_bin_svm_gbm_lvq.png[review_2k_star2_bin_svm_gbm_lvq]
 
+R Command:
+link:.\RData\review_2k_star2_bin_svm_gbm_lvq.R[review_2k_star2_bin_svm_gbm_lvq.R]
+
+summary
 ----
 > summary(results)
 
@@ -361,10 +363,15 @@ Gbm and svmLinear models accuracy (88%) higher than lvq model (84%).
 === freq vs pres, Model: nnet and nb
 2k dataset contain only star1 and star5, 1k per each.  Frequency of features vs presence of features (freq vs pres)
 Another two classification model nnet and nb +
-Model: nnet and nb
-File: review_2k_star2_bin_nb_nnt.RData
+Model: nnet and nb +
+File:
+link:.\RData\review_2k_star2_bin_nb_nnt.RData[review_2k_star2_bin_nb_nnt.RData] +
 image:review_2k_star2_bin_nb_nnt.png[]
 
+R Command:
+link:.\RData\review_2k_star2_bin_nb_nnt.R[review_2k_star2_bin_nb_nnt.R]
+
+summary
 ----
 > summary(results)
 
@@ -405,10 +412,15 @@ similar with svm and gbm models (88%).
 === Evaluate the model stability
 2k dataset (a-d four different 2k samples) contain only star1 and star5, 1k per each.
 To evaluate the model stability, we random selected four group 2k data from yelp review. +
-File: review_2k_binfreq_abcd_svm.RData +
+File:
+link:.\RData\review_2k_binfreq_abcd_svm.RData[review_2k_binfreq_abcd_svm.R] +
 Model: svmLinear +
 image:review_2k_binfreq_abcd_svm.png[]
 
+R Command:
+link:.\RData\review_2k_binfreq_abcd_svm.R[review_2k_binfreq_abcd_svm.R]
+
+summary
 ----
 > summary(results_svmLinear_abcd)
 
@@ -443,10 +455,15 @@ The prediction accuracies are same for the same model.
 
 === Evaluate the model for 5 levels (1-5)
 5k dataset contain star1 to star5, 1k per each. To evaluate the model for 5 levels (1-5). +
-File: review_5k_bin_svm_gbm_lvq.RData +
+File:
+link:.\RData\review_5k_bin_svm_gbm_lvq.RData[review_5k_bin_svm_gbm_lvq.RData] +
 Model: svmLinear, gbm and lvq +
 image:review_5k_bin_svm_gbm_lvq.png[review_5k_bin_svm_gbm_lvq]
 
+R Command:
+link:.\RData\review_5k_bin_svm_gbm_lvq.R[review_5k_bin_svm_gbm_lvq.R]
+
+summary
 ----
 > summary(results)
 
@@ -485,10 +502,15 @@ image:review_5k_bin_svm_gbm_lvq_dotplot.png[]
 === Evaluate the model for 3 levels (star1, star3, start5).
 As increase level from 2 to 5 cause model prediction accuracy decrease, combine the middle level, test model for level 3. +
 5k dataset contain star1 to star5, 1k per each. Assign star2 to star1, star4 to star5.  To evaluate the model for 3 levels (1, 3, 5). +
-File: review_5k_star3_bin_svm_gbm_lvq.RData +
+File:
+link:.\RData\review_5k_star3_bin_svm_gbm_lvq.RData[review_5k_star3_bin_svm_gbm_lvq.RData] +
 Model: svmLinear, gbm and lvq +
 image:review_5k_star3_bin_svm_gbm_lvq.png[]
 
+R Command:
+link:.\RData\review_5k_star3_bin_svm_gbm_lvq.R[review_5k_star3_bin_svm_gbm_lvq.R]
+
+summary
 ----
 > summary(results3)
 
@@ -527,10 +549,15 @@ image:review_5k_star3_bin_svm_gbm_lvq_dotplot.png[]
 === Evaluate the model for 2 combine levels (star1, star5)
 Reduce level (5->3) increase model prediction accuracy, continue investigate combine levels to 2. +
 5k dataset contain star1 to star5, 1k per each. Assign star2 and star3 to star1, star4 to star5. To evaluate the model for 2 levels (star1, star5).
-File: review_5k_star2a_bin_svm_gbm_lvq.RData +
+File:
+link:.\RData\review_5k_star2a_bin_svm_gbm_lvq.RData[review_5k_star2a_bin_svm_gbm_lvq.RData] +
 Model: svmLinear, gbm and lvq +
 image:review_5k_star2a_bin_svm_gbm_lvq.png[]
 
+R Command:
+link:.\RData\review_5k_star2a_bin_svm_gbm_lvq.R[review_5k_star2a_bin_svm_gbm_lvq.R]
+
+summary
 ----
 > summary(results2a)
 
@@ -573,10 +600,15 @@ To discuss which combination is better?
 . Assign star2 to star1, star4 and star3 to star5
 
 5k dataset contain star1 to star5, 1k per each. Assign star2 to star1, star4 and star3 to star5. +
-File: review_5k_star2b_bin_svm_gbm_lvq.RData +
+File:
+link:.\RData\review_5k_star2b_bin_svm_gbm_lvq.RData[review_5k_star2b_bin_svm_gbm_lvq.RData] +
 Model: svmLinear, gbm and lvq +
 image:review_5k_star2b_bin_svm_gbm_lvq.png[]
 
+R Command:
+link:.\RData\review_5k_star2b_bin_svm_gbm_lvq.R[review_5k_star2b_bin_svm_gbm_lvq.R]
+
+summary
 ----
 > summary(results2b)
 
