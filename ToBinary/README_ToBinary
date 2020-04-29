@@ -1,3 +1,20 @@
+VERSION: 0.6.0
+2020-04-28
+
+@ use arguments passed by command line instead input each parmeter.
+args[0] the raw (tsv) file, 
+args[1] the number of variable 
+args[2] the positive and negative dictionary
+
+/**************/
+compile and run in Linux
+/**************/
+
+$javac ToBinary.java
+
+$ java ToBinary review_1k_col7.tsv 7 dic_pos_neg
+
+--------------------------------------------------------------------------------------/
 VERSION: 0.5.0
 2016-08-05
 

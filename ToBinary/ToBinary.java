@@ -1,7 +1,7 @@
 /** ToBinary.java
 *AUTHOR: GUANPING YU
-*DATE: 2016-08-05
-*VERSION: 0.5.0
+*DATE: 2020-04-28
+*VERSION: 0.6.0
 *@update: feature with the number of times occurs in total document > 1% number of observations can be selected
 *GOAL: clean the file,count the word, add negation not_ tag and count the word again
 *      Select features by intersection wordcount and dictionary
@@ -39,6 +39,8 @@ Dec	Hex	Binary	  Char  Description
 *
 *Tag the negation: add not_ to every word between a negation word
 ("not", isn't, didn't, etc)
+
+* TODO Handle unicode spanish char
 */
 
 import java.io.IOException;
@@ -59,24 +61,28 @@ public class ToBinary{
 	public static void main(String[] args) throws IOException{
 
 		try{
-			/*Read the raw file, the number of variable and name of dictionary*/
-			System.out.println("Input the raw file: ");
-			Scanner input = new Scanner(System.in);
-			String rawFile = input.next();
-			System.out.println("\nInput the number of variables in the raw file: ");
-			int numVar = input.nextInt();
-			System.out.println("\nInput the dictionary containing postive and negtive words: ");
-			String dicPosNeg = input.next();
+			/*Command-Line Arguments
+			args[0] the raw (tsv) file, 
+			args[1] the number of variable 
+			args[2] the positive and negative dictionary
+			*/
+			
+			//TODO handle args exception: args.length > 0, args[1] is int
+			String rawFile = args[0];			
+			int numVar = Integer.parseInt(args[1]);				
+			String dicPosNeg = args[2];	
+			
+			int numFreq; //the frequency of selected features			
 
 			//Start timer for the task
 			long startTime = System.nanoTime();
 
 			FileReader frRaw = new FileReader(rawFile);
 			BufferedReader brRaw = new BufferedReader(frRaw);
-
+			
 			//count the lines in input file
 			System.out.print("\nStart processing: \n1. Count the observations in the input file");
-			int numLines = 0; // number of observations
+			int numLines = 0; // number of observations (rows)
 			while((brRaw.readLine()) != null){
 				numLines++;
 			}
@@ -180,8 +186,8 @@ public class ToBinary{
 			String feature = null;
 			String featureTag = null;
 			int numFeatures = 0;
-			int numFreq = numLines/100;//the frequency of selected features
-
+			numFreq = numLines/100;//the frequency of selected features			
+			
 			while((feature = brDic.readLine()) != null){
 				featureTag = "not_" + feature; 
 
@@ -195,6 +201,8 @@ public class ToBinary{
 					numFeatures++;
 				}
 			}
+			
+			System.out.printf("Feature frequency (the number of times fi occurs in whole dataset.) is %d \n", numFreq);
 
 			System.out.printf("%d features were selected\n\n", numFeatures);
 
@@ -299,10 +307,7 @@ public class ToBinary{
 			brRaw.close();
 			brDic.close();
 			brFeaturesTag.close();
-
-			//close scanner
-			input.close();
-
+			
 			//end timer
 			System.out.println("\n\nProcess finish!");
 			long elapsedTime = System.nanoTime() - startTime;

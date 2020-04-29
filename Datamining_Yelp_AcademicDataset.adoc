@@ -162,18 +162,14 @@ A list of positive and negative opinion words or sentiment words for English (67
 Rerence:
 link:http://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html[Opinion Mining, Sentiment Analysis, and Opinion Spam Detection]
 
-Compile and Run ToBinary
+Compile and Run ToBinary (version 0.6.0)
 ----
-$ javac ToBinary.java
-$ java ToBinary
-Input the raw file:
-review_1k_col7.tsv
-
-Input the number of variables in the raw file:
-7
-
-Input the dictionary containing postive and negtive words:
-dic_pos_neg
+#compile and run ToBinary in Windows 10
+> javac ToBinary.java
+# review_1k_col7.tsv: args[0] is raw tsv file,
+# 7: args[1] is the number of variable (columns),
+# dic_pos_neg: args[2] the positive and negative dictionary
+> java -classpath E:\Github\Datamining_Yelp_AcademicDataset\ToBinary ToBinary review_1k_col7.tsv 7 dic_pos_neg
 
 Start processing:
 1. Count the observations in the input file
@@ -182,6 +178,7 @@ review_1k_col7.tsv has 1000 observations
 2. Clean and tag file , word count: 99.90%
 
 3. Select Features according to the dictionary and wordcount result
+Feature frequency (the number of times fi occurs in whole dataset.) is 10
 147 features were selected
 
 4. Read clean taged text file and convert to binary: 99.90%
@@ -189,7 +186,7 @@ review_1k_col7.tsv has 1000 observations
 Process finish!
 
 
-Process finish! Time taken 0.945 Second
+Process finish! Time taken 0.602 Second
 ----
 
 == Algorithms on text Mining
@@ -258,10 +255,14 @@ For classification and regression using packages gbm and plyr with tuning parame
 
 == Text mining experiment and results
 
-R and Rstudio
-----
-TODO version and how to run
-----
+Software: R 4.0 and RStudio Desktop 1.2.5042 run in win10 system.
+
+* Install R and Rstudio.
+link:https://rstudio.com/products/rstudio/download/#download[R and Rstudio download]
+
+* Starting with R 4.0.0 (released April 2020), R for Windows uses a brand new toolchain bundle called rtools40.
+link:https://cran.r-project.org/bin/windows/Rtools/[Rtools download]
+
 
 ===	Discuss the number of features and the prediction accuracy
 2k dataset contain only star1 and star5, 1k per each.
@@ -270,6 +271,21 @@ feature frequency (the number of times fi occurs in whole dataset.)
 Model: svmLinear +
 File: review_2k_binfreq_svm.RData +
 image:review_2k_binfreq_svm.png[review_2k_binfreq_svm]
+
+Sample procedure
+----
+# Install packages
+> install.packages("caret")
+> install.packages("klaR")
+
+# Load library
+> library(caret)
+> library(klaR)
+
+# Load datasets
+> load("review_2k_binfreq_svm.RData")
+
+----
 
 ----
 > summary(results_svmLinear)
