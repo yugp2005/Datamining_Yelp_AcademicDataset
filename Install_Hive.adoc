@@ -1,0 +1,57 @@
+:imagesdir: media
+:toc:
+:sectnums:
+
+= Install Hive On Hadoop
+Guanping Yu <yugp2005@gmail.com>
+
+This article introduce how to install hive (v1.2.1) on Hadoop (V2.7.1)system.
+
+== Download Hive and unzip
+Download Hive from the following site:
+link:http://mirror.symnds.com/software/Apache/hive/stable/[Download Hive]
+
+image:Hive_download.png[]
+
+Unzip the file to my home directory and rename the folder to hive-1.2.1
+image:Hive_unzip.png[]
+
+== Setup environment
+
+* Set $HADOOP_HOME as well as $HIVE_HOME environment variable (/home/yugp/ .bashrc)
+
+----
+#JAVA HOME Directory SetUp
+export JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64"
+set PATH="$PAHT:$JAVA_HOME/bin"
+
+#Hadoop Home Directory Configuration
+export HADOOP_HOME="/home/yugp/hadoop-2.7.1"
+export PATH="$PATH:$HADOOP_HOME/bin"
+export PATH="$PATH:$HADOOP_HOME/sbin"
+
+#HIVE home directory Configuration
+export HIVE_HOME="/home/yugp/hive-1.2.1 "
+export PATH="$PATH:$HIVE_HOME/bin"
+----
+
+image:Hive_bashrc.png[]
+
+== Start HIVE
+
+Start Hadoop
+----
+yugp@ubuntu:~$ ssh localhost
+yugp@ubuntu:~$ hdfs namenode -format
+yugp@ubuntu:~$ start-dfs.sh
+yugp@ubuntu:~$ start-yarn.sh
+yugp@ubuntu:~$ jps
+----
+image:Hive_startHadoop.png[]
+
+Login hive
+----
+yugp@ubuntu:~$ hdfs dfsadmin -safemode leave
+yugp@ubuntu:~$ hive
+----
+image:Hive_login.png[]

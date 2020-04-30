@@ -78,15 +78,11 @@ $ sed -n '1,1000' yelp_academic_dataset_review.json > yelp_academic_dataset_revi
 
 === convert review text from json to table separated value(tsv) file
 
-* install Hadoop
-----
-TODO
-----
+* install Hadoop:
+link:Install_Hadoop.adoc[Install_Hadoop.adoc]
 
-* install Hive
-----
-TODO
-----
+* install Hive:
+link:Install_Hive.adoc[Install_Hive.adoc]
 
 * run Hadoop
 ----
@@ -115,19 +111,25 @@ start hive
 $ hive
 ----
 
-* Process json file with Hive. Import yelp_academic_dataset_review_1000records.json file into Hadoop and output null \000 separated file as following
+* Process json file with Hive. Import
+link:.\sampleData\yelp_academic_dataset_review_1000records.json[yelp_academic_dataset_review_1000records.json]
+file into Hadoop and output null \000 separated file as following
 ----
 hive>CREATE TABLE IF NOT EXISTS table1kreviews(str string);
 hive> LOAD DATA LOCAL INPATH '/home/gpyu/yelp/yelpDatasets/yelp_academic_dataset_review_1000records.json' OVERWRITE INTO TABLE table1kreviews;
 
 hive> INSERT OVERWRITE LOCAL DIRECTORY '/home/gpyu/hadoopOUT/' ROW FORMAT DELIMITED FIELDS TERMINATED BY '\000' SELECT GET_JSON_OBJECT(table1kreviews.str, '$.stars'), GET_JSON_OBJECT(table1kreviews.str, '$.user_id'), GET_JSON_OBJECT(table1kreviews.str, '$.review_id'), GET_JSON_OBJECT(table1kreviews.str, '$.date'), GET_JSON_OBJECT(table1kreviews.str, '$.type'), GET_JSON_OBJECT(table1kreviews.str, '$.business_id'), GET_JSON_OBJECT(table1kreviews.str, '$.text') from table1kreviews;
 ----
-output file: /home/gpyu/hadoopOUT/000000_0. +
-Rename '000000_0' to 'review_1k_col7_delim_null'
+output file:
+link:.\sampleData\000000_0[000000_0]
+Rename '000000_0' to
+link:.\sampleData\review_1k_col7_delim_null[review_1k_col7_delim_null]
 
 * Convert null separated file to table separated value (tsv) file with program totsv.c. +
 The raw data is n columns null (0x00) separated file. The first column must be one char and other column should more one char.
-The code was based on file review_1k_col7_delim_null which first column is 'stars' on char. If file pattern change, code need update accordingly.
+The code was based on file
+link:.\totsv\sampleData\input\review_1k_col7_delim_null[review_1k_col7_delim_null]
+which first column is 'stars' on char. If file pattern change, code need update accordingly.
 
 ----
 #compile totsv.c
@@ -156,18 +158,25 @@ link:https://www.aclweb.org/anthology/W02-1011/[Thumbs up? Sentiment Classificat
 . add negation not_ tag and count the word again.
 . Select features by intersection wordcount and dictionary transfer text to binary using frequency of the features. +
 
-* Dictionary: dic_pos_neg +
+* Dictionary:
+link:.\ToBinary\sampleData\input\dic_pos_neg[dic_pos_neg] +
 A list of positive and negative opinion words or sentiment words for English (6789 words).
 Rerence:
 link:http://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html[Opinion Mining, Sentiment Analysis, and Opinion Spam Detection]
 
 Compile and Run ToBinary (version 0.6.0)
+
+input data:
+link:.\ToBinary\sampleData\input\review_1k_col7.tsv[review_1k_col7.tsv]
+
+compile and run ToBinary in Windows 10, command line parameters for ToBinary:
+
+* review_1k_col7.tsv: args[0] is raw tsv file,
+* 7: args[1] is the number of variable (columns),
+* dic_pos_neg: args[2] the positive and negative dictionary
 ----
-#compile and run ToBinary in Windows 10
 > javac ToBinary.java
-# review_1k_col7.tsv: args[0] is raw tsv file,
-# 7: args[1] is the number of variable (columns),
-# dic_pos_neg: args[2] the positive and negative dictionary
+
 > java -classpath E:\Github\Datamining_Yelp_AcademicDataset\ToBinary ToBinary review_1k_col7.tsv 7 dic_pos_neg
 
 Start processing:

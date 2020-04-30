@@ -1,0 +1,108 @@
+:imagesdir: media
+:toc:
+:sectnums:
+
+
+= Install Hadoop in Ubuntu system
+Guanping Yu <yugp2005@gmail.com>
+
+This article introduce how to install hadoop (v2.7.1) in Ubuntu 16.04.1 LTS.
+
+== Download Hadoop and unzip the file
+image:Hadoop_DownloadLink.png[]
+image:Hadoop_Ubuntu_unzip.png[]
+
+== Make sure the Linux system have java and ssh
+image:Hadoop_Java_ssh.png[]
+
+* ssh localhost
+if show error message, check whether sshd installed, if not install sshd first
+image:Hadoop_ssh_install.png[]
+
+* After install sshd +
+image:Hadoop_ssh_localhost.png[]
+
+* Setup passwordless ssh by:
+----
+$ ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
+$ cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
+----
+image:Hadoop_Setup_passwordless_ssh.png[]
+
+== Change to hadoop unpacked directory set up java env and *.xml
+
+* Edit the file etc/haddop/hadoop-env.sh to define JAVA_HOME +
+export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+
+image:Hadoop_env_sh_JavaHome.png[]
+
+* Edit etc/haddop/core-site.xml
+----
+<configuration>
+	<property>
+		<name>fs.default.name</name>
+		<value>hdfs://localhost:9000</value>
+	</property>
+</configuration>
+----
+image:Hadoop_core_site.png[]
+
+* Edit /etc/hadoop/hdfs-site.xml
+----
+<configuration>
+	<property>
+		<name>dfs.replication</name>
+		<value>1</value>
+	</property>
+</configuration>
+----
+image:Hadoop_hdfs_site.png[]
+
+* Edit /etc/hadoop/mapred-site.xml
+----
+<configuration>
+	<property>
+		<name>mapred.job.tracker</name>
+		<value>localhost:9001</value>
+	</property>
+</configuration>
+----
+image:Hadoop_mapred_site.png[]
+
+== Format a new distributed-filesystem
+----
+yugp@ubuntu:~/hadoop-2.7.1/bin$ ./hadoop namenode –format
+----
+image:Hadoop_namenod_format_1.png[]
+...
+image:Hadoop_namenod_format_2.png[]
+
+== Start Hadoop daemons
+----
+yugp@ubuntu:~/hadoop-2.7.1$ sbin/start-all.sh
+----
+image:Hadoop_start_all_sh.png[]
+
+== Verification of daemons
+
+yugp@ubuntu:~/hadoop-2.7.1$ jps
+
+image:Hadoop_jps_install.png[]
+
+yugp@ubuntu:~/hadoop-2.7.1$ bin/hadoop fs
+image:Hadoop_fs_1.png[]
+image:Hadoop_fs_2.png[]
+
+== Permanently add hadoop-2.7.1 bin and sbin folder to the path
+
+----
+Open $HOME folder.
+Go to View -> Show Hidden Files or press Ctrl + H.
+Right click on .profile and click on Open With Text Editor.
+Scroll to the bottom and add
+	PATH="$PATH:/home/yugp/hadoop-2.7.1/bin"
+	PATH="$PATH:/home/yugp/hadoop-2.7.1/sbin"
+Save.
+Log out and log back in to apply changes (let Ubuntu actually load .profile).
+----
+image:Hadoop_add_bin_sbin_path.png[]
