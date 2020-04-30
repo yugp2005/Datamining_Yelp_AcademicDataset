@@ -74,7 +74,7 @@ $ ./totsv review_1k_col7_delim_null review_1k_col7.tsv
 ```
 
 Compile and Run ToBinary (version 0.6.0).
-Input data: [review_1k_col7.tsv](./ToBinary\sampleData/input/review_1k_col7.tsv)
+Input data: [review_1k_col7.tsv](./ToBinary/sampleData/input/review_1k_col7.tsv)
 ```
 Input file 'review_1k_col7.tsv' and 'dic_pos_neg' need at same folder with ToBinary.
 
