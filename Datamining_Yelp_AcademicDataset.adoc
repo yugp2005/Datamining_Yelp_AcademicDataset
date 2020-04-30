@@ -135,7 +135,7 @@ which first column is 'stars' on char. If file pattern change, code need update 
 #compile totsv.c
 $ gcc totsv.c -o totsv
 
-#run totsv.c
+#run totsv
 $ ./totsv review_1k_col7_delim_null review_1k_col7.tsv
 ----
 .null separated file
@@ -169,15 +169,15 @@ Compile and Run ToBinary (version 0.6.0)
 input data:
 link:.\ToBinary\sampleData\input\review_1k_col7.tsv[review_1k_col7.tsv]
 
-compile and run ToBinary in Windows 10, command line parameters for ToBinary:
+compile and run ToBinary, command line parameters for ToBinary:
 
-* review_1k_col7.tsv: args[0] is raw tsv file,
-* 7: args[1] is the number of variable (columns),
+* review_1k_col7.tsv: args[0] is raw tsv file
+* 7: args[1] is the number of variable (columns) in raw tsv file
 * dic_pos_neg: args[2] the positive and negative dictionary
 ----
-> javac ToBinary.java
+$ javac ToBinary.java
 
-> java -classpath E:\Github\Datamining_Yelp_AcademicDataset\ToBinary ToBinary review_1k_col7.tsv 7 dic_pos_neg
+$ java ToBinary review_1k_col7.tsv 7 dic_pos_neg
 
 Start processing:
 1. Count the observations in the input file
@@ -323,7 +323,7 @@ image:review_2k_binfreq_svm_dotplot.png[]
 The accuracy for these two set are almost same (89.3% vs 87.7%). Freq04 has 641 features and accuracy is 86.4%.
 In order to save computation time, the number of features fi in the whole dataset will be >= 1% number of observations.
 
-=== freq vs pres, Model: svmLinear, lvq and gbm
+=== Freq vs pres, Model: svmLinear, lvq and gbm
 2k dataset contain only star1 and star5, 1k per each.  Frequency of features vs presence of features (freq vs pres) +
 Model: svmLinear, lvq and gbm +
 File:
@@ -369,7 +369,7 @@ image:review_2k_star2_bin_svm_gbm_lvq_dotplot.png[]
 *Discussion:* the frequency and presence of features show similar accuracy for gbm, svmLinear and lvq model.
 Gbm and svmLinear models accuracy (88%) higher than lvq model (84%).
 
-=== freq vs pres, Model: nnet and nb
+=== Freq vs pres, Model: nnet and nb
 2k dataset contain only star1 and star5, 1k per each.  Frequency of features vs presence of features (freq vs pres)
 Another two classification model nnet and nb +
 Model: nnet and nb +
